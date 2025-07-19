@@ -8,12 +8,17 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
 
-  // Password reset fields
+  profilePic: { type: String, default: '' },
+  profilePicPublicId: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  location: { type: String, default: '' },
+  tags: [{ type: String }],
+
   resetPasswordOTPHash: { type: String },
   resetPasswordOTPExpires: { type: Date },
   resetPasswordAttempts: { type: Number, default: 0 },
-  resetPasswordVerified: { type: Boolean, default: false }, // after OTP verification
-  resetPasswordTokenHash: { type: String }, // second-stage token
+  resetPasswordVerified: { type: Boolean, default: false },
+  resetPasswordTokenHash: { type: String },
   resetPasswordTokenExpires: { type: Date }
 }, { timestamps: true });
 
@@ -24,25 +29,20 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-/**
- * Generate & set OTP (not returning hashed)
- */
+
 userSchema.methods.setPasswordResetOTP = function() {
-  const otp = (Math.floor(100000 + Math.random() * 900000)).toString(); // 6-digit numeric
+  const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
   const hash = crypto.createHash('sha256').update(otp).digest('hex');
   this.resetPasswordOTPHash = hash;
   this.resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
   this.resetPasswordAttempts = 0;
   this.resetPasswordVerified = false;
-  // Clear previous tokens
+  
   this.resetPasswordTokenHash = undefined;
   this.resetPasswordTokenExpires = undefined;
-  return otp; // return plain OTP to email
+  return otp;
 };
 
-/**
- * Verify OTP
- */
 userSchema.methods.verifyPasswordResetOTP = function(otp) {
   if (!this.resetPasswordOTPHash || !this.resetPasswordOTPExpires) return false;
   if (Date.now() > this.resetPasswordOTPExpires.getTime()) return false;
@@ -50,9 +50,6 @@ userSchema.methods.verifyPasswordResetOTP = function(otp) {
   return hash === this.resetPasswordOTPHash;
 };
 
-/**
- * Create second-stage reset token
- */
 userSchema.methods.generateResetToken = function() {
   const raw = crypto.randomBytes(32).toString('hex');
   const hash = crypto.createHash('sha256').update(raw).digest('hex');

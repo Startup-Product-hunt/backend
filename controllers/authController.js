@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -8,11 +7,9 @@ const generateToken = (id, role) =>
 
 const buildCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // true only over HTTPS in prod
-  sameSite: process.env.COOKIE_SAMESITE || 'strict', // 'lax' if you need it
+  secure: false,
+  sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000,
-  // domain: process.env.COOKIE_DOMAIN, // e.g. '.yourdomain.com' if needed
-  // path: '/', // default
 });
 
 const normalizeEmail = (email) => (email || '').trim().toLowerCase();
@@ -22,7 +19,6 @@ exports.register = async (req, res) => {
   try {
     let { name, email, password } = req.body;
 
-    // Basic validation (expand as needed)
     if (!name || !email || !password)
       return res.status(400).json({ message: 'Name, email, password required' });
     email = normalizeEmail(email);
@@ -32,12 +28,10 @@ exports.register = async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'User already exists' });
-      // For stealth mode, you could respond: res.status(200).json({ message: 'If that email is unused, account will be created' });
     }
 
     const user = await User.create({ name, email, password });
 
-    // Auto-login: set cookie
     const token = generateToken(user._id, user.role);
     res.cookie('token', token, buildCookieOptions());
 
@@ -46,10 +40,8 @@ exports.register = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role
-      // Decide whether to also send token: token
     });
   } catch (error) {
-    // Handle duplicate key (unique index violation)
     if (error.code === 11000) {
       return res.status(400).json({ message: 'Email already registered' });
     }
@@ -82,7 +74,6 @@ exports.login = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role
-      // token  (omit if cookie-only strategy)
     });
   } catch (error) {
     console.error('Login error:', error);

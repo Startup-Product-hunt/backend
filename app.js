@@ -19,6 +19,13 @@ app.use(cookieParser());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) return next(err);
+  res
+    .status(err.status || 500)
+    .json({ message: err.message || 'Internal server error' });
+});
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -29,6 +36,8 @@ const enrollmentRoutes = require('./routes/enrollmentRoutes');
 app.use('/api/enroll', enrollmentRoutes);
 const passwordResetRoutes = require('./routes/passwordResetRoutes');
 app.use('/api/auth', passwordResetRoutes);
+const userRoutes = require('./routes/userRoutes');
+app.use('/api/user', userRoutes);
 
 app.get('/', (req, res) => res.send("API is running..."));
 
