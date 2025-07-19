@@ -3,13 +3,19 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
 dotenv.config();
 connectDB();
 
 const app = express();
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
@@ -21,6 +27,8 @@ const courseRoutes = require('./routes/courseRoutes');
 app.use('/api/courses', courseRoutes);
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 app.use('/api/enroll', enrollmentRoutes);
+const passwordResetRoutes = require('./routes/passwordResetRoutes');
+app.use('/api/auth', passwordResetRoutes);
 
 app.get('/', (req, res) => res.send("API is running..."));
 
