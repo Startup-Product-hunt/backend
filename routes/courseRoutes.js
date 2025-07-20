@@ -5,18 +5,13 @@ const {
   createCourse,
   updateCourse,
   deleteCourse,
-  buyCourse,
-  // buyCourse // <-- we'll wire this in later
 } = require('../controllers/courseController');
 const { protect } = require('../middlewares/authMiddleware');
 
-// Multer+Cloudinary upload middleware for course thumbnails
-// (See file below: ../middlewares/multerCourseThumbnail)
 const uploadCourseThumb = require('../middlewares/multerCourseThumbnail');
 
 const router = express.Router();
 
-// Public
 router.get('/', getCourses);
 router.get('/:id', getCourse);
 

@@ -2,8 +2,8 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const generateToken = (id, role) =>
-  jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const generateToken = (id, email, role) =>
+  jwt.sign({ id, email, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 const buildCookieOptions = () => ({
   httpOnly: true,
@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
 
     const user = await User.create({ name, email, password });
 
-    const token = generateToken(user._id, user.role);
+    const token = generateToken(user._id, user.email, user.role);
     res.cookie('token', token, buildCookieOptions());
 
     return res.status(201).json({
@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: 'Invalid email or password' });
 
-    const token = generateToken(user._id, user.role);
+    const token = generateToken(user._id, user.email, user.role);
     res.cookie('token', token, buildCookieOptions());
 
     return res.json({

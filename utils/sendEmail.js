@@ -1,4 +1,3 @@
-// src/utils/sendEmail.js
 require('dotenv').config()
 const nodemailer = require('nodemailer');
 
@@ -15,6 +14,7 @@ const transporter = nodemailer.createTransport({
 
 
 async function sendEmail({ to, subject, html, text }) {
+  console.log(to)
   const info = await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to,

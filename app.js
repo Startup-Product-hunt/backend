@@ -38,6 +38,8 @@ const passwordResetRoutes = require('./routes/passwordResetRoutes');
 app.use('/api/auth', passwordResetRoutes);
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/user', userRoutes);
+const eventRoutes = require('./routes/eventRoutes');
+app.use('/api/event', eventRoutes);
 
 app.get('/', (req, res) => res.send("API is running..."));
 
