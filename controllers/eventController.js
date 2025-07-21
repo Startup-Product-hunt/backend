@@ -3,7 +3,6 @@ const Ticket = require("../models/ticketModel");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 
-// Admin creates event
 exports.createEvent = async (req, res) => {
   try {
     const { title, description, location, dateTime } = req.body;
@@ -20,16 +19,13 @@ exports.createEvent = async (req, res) => {
   }
 };
 
-// User gets ticket
 exports.getTicket = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    // Confirm event exists
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    // Prevent duplicate ticket for same user/event (optional but recommended)
     const existing = await Ticket.findOne({
       user: req.user.id,
       event: eventId,
@@ -41,7 +37,6 @@ exports.getTicket = async (req, res) => {
       });
     }
 
-    // Generate ticket number
     const ticketNumber =
       "TKT-" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
@@ -51,8 +46,6 @@ exports.getTicket = async (req, res) => {
       ticketNumber,
     });
 
-    // Email ticket (make sure req.user.email is available from auth token;
-    // if not, look up user by req.user.id)
     await sendEmail({
       to: req.user.email,
       subject: `Your ticket for: ${event.title}`,

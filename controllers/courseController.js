@@ -1,7 +1,6 @@
 const Course = require('../models/courseModel');
 const mongoose = require('mongoose');
 
-/* Helpers ------------------------------------------------------------------ */
 function cleanString(val) {
   return typeof val === 'string' ? val.trim() : val;
 }
@@ -22,7 +21,6 @@ function userCanEditCourse(course, reqUser) {
   return course.createdBy.toString() === reqUser.id.toString();
 }
 
-/* GET all ------------------------------------------------------------------ */
 exports.getCourses = async (req, res) => {
   try {
     const courses = await Course.find()
@@ -34,7 +32,6 @@ exports.getCourses = async (req, res) => {
   }
 };
 
-/* GET one ------------------------------------------------------------------ */
 exports.getCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
@@ -50,13 +47,12 @@ exports.getCourse = async (req, res) => {
   }
 };
 
-/* CREATE (any logged‑in user can sell) ------------------------------------- */
 exports.createCourse = async (req, res) => {
   try {
     const {
       title,
       details,
-      description, // fallback
+      description,
       price,
       category,
       content
@@ -93,7 +89,6 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-/* UPDATE (creator or admin) ------------------------------------------------ */
 exports.updateCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
@@ -121,7 +116,6 @@ exports.updateCourse = async (req, res) => {
 
     if (req.file?.path) {
       course.thumbnail = req.file.path;
-      // TODO: track & delete old thumbnail if storing public_id
     } else if (req.body.thumbnail !== undefined) {
       course.thumbnail = cleanString(req.body.thumbnail);
     }
@@ -146,7 +140,6 @@ exports.updateCourse = async (req, res) => {
   }
 };
 
-/* DELETE (creator or admin) ------------------------------------------------ */
 exports.deleteCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
@@ -156,7 +149,6 @@ exports.deleteCourse = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this course' });
     }
 
-    // TODO: delete Cloudinary thumbnail if tracked
     await course.deleteOne();
     res.json({ message: 'Course removed' });
   } catch (error) {

@@ -5,7 +5,7 @@ const { enrollCourse, getMyCourses, checkEnrollment } = require('../controllers/
 const router = express.Router();
 
 router.post('/:courseId',  enrollCourse);
-router.get('/my',  getMyCourses);
+router.get('/my-courses',  getMyCourses);
 router.get('/:courseId/check',  checkEnrollment);
 
 module.exports = router;

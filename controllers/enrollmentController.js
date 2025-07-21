@@ -42,33 +42,47 @@ exports.enrollCourse = async (req, res) => {
   }
 };
 
-// @desc Get all enrolled courses for current user
-// @route GET /api/enroll/my
-// @access Private
 exports.getMyCourses = async (req, res) => {
   try {
     const enrollments = await Enrollment.find({ user: req.user.id })
       .populate({
         path: 'course',
         populate: { path: 'createdBy', select: 'name email' }
-      });
+      })
+      .sort({ createdAt: -1 });
 
-    const data = enrollments.map(en => ({
+    if (!enrollments.length) {
+      return res.status(200).json({
+        success: true,
+        message: 'You are not enrolled in any courses yet.',
+        count: 0,
+        courses: []
+      });
+    }
+
+    const courses = enrollments.map(en => ({
       enrollmentId: en._id,
       paymentStatus: en.paymentStatus,
       enrolledAt: en.createdAt,
       course: en.course
     }));
 
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(200).json({
+      success: true,
+      message: 'Enrolled courses retrieved successfully.',
+      count: courses.length,
+      courses
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load your courses.',
+      error: err.message
+    });
   }
 };
 
-// @desc Check enrollment
-// @route GET /api/enroll/:courseId/check
-// @access Private
 exports.checkEnrollment = async (req, res) => {
   try {
     const { courseId } = req.params;

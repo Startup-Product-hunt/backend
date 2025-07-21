@@ -10,6 +10,7 @@ const qs = require("querystring");
 const User = require("../models/userModel");
 const setTokenCookie = require("../authService/setTokenCookie");
 
+
 const redirectToGoogle = (req, res) => {
   const googleAuthURL =
     `https://accounts.google.com/o/oauth2/v2/auth?` +

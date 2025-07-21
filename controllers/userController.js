@@ -1,6 +1,6 @@
 const courseModel = require('../models/courseModel');
 const User = require('../models/userModel');
-const bcrypt = require('bcrypt');
+
 
 
 exports.getProfile = async (req, res) => {

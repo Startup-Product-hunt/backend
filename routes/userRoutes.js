@@ -1,7 +1,6 @@
 const express = require("express");
-const { getProfile, updateProfile } = require("../controllers/userController");
-const { getMyCourses } = require("../controllers/userController");
-const checkForAuthenticationCookie = require("../middlewares/authMiddleware");
+const { getProfile, updateProfile, getMyCourses } = require("../controllers/userController");
+const upload = require('../middlewares/cloudinaryUpload')
 
 const router = express.Router();
 

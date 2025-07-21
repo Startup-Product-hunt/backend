@@ -18,7 +18,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-  
+
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -51,12 +51,7 @@ app.use("/api/courses/general", generalRoute);
 app.use("/api/courses", checkForAuthenticationCookie("token"), courseRoutes);
 app.use("/api/enroll", checkForAuthenticationCookie("token"), enrollmentRoutes);
 app.use("/api/user", checkForAuthenticationCookie("token"), userRoutes);
-app.use(
-  "/api/event",
-  checkForAuthenticationCookie("token"),
-  authorizeRoles(["admin"]),
-  eventRoutes
-);
+app.use("/api/event", checkForAuthenticationCookie("token"), authorizeRoles(["admin"]), eventRoutes);
 
 app.get("/", (req, res) => res.send("API is running..."));
 
