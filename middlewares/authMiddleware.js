@@ -1,22 +1,36 @@
-const jwt = require('jsonwebtoken');
+const { parse } = require("cookie");
+const { validateToken } = require('../authService/authService');
 
-exports.protect = (req, res, next) => {
-  let token;
+function checkForAuthenticationCookie() {
+  return (req, res, next) => {
+    try {
+      let token;
 
-  // Priority: Authorization header Bearer <token>
-  if (req.headers.authorization?.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
-  }
+      if (req.headers.cookie) {
+        const parsedCookies = parse(req.headers.cookie);
+        token = parsedCookies.token;
+      }
+      if (!token && req.headers.authorization) {
+        const authHeader = req.headers.authorization;
+        if (authHeader.startsWith("Bearer ")) {
+          token = authHeader.split(" ")[1];
+        }
+      }
+      if (!token) {
+        return res.status(401).json({ error: "No token found. Please login." });
+      }
 
-  if (!token) return res.status(401).json({ message: "No token, authorization denied" });
+      const userPayload = validateToken(token);
+      if (!userPayload) {
+        return res.status(401).json({ error: "Invalid or expired token." });
+      }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Token is not valid" });
-  }
-};
+      req.user = userPayload;
+      next();
+    } catch (error) {
+      console.error("Auth error:", error.message);
+      return res.status(500).json({ error: "Authentication failed." });
+    }
+  };
+}
+module.exports = checkForAuthenticationCookie;

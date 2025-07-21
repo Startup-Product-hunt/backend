@@ -1,7 +1,7 @@
-const Event = require('../models/eventModel');
-const Ticket = require('../models/ticketModel');
-const sendEmail = require('../utils/sendEmail');
-const crypto = require('crypto');
+const Event = require("../models/eventModel");
+const Ticket = require("../models/ticketModel");
+const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 // Admin creates event
 exports.createEvent = async (req, res) => {
@@ -12,7 +12,7 @@ exports.createEvent = async (req, res) => {
       description,
       location,
       dateTime,
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
     res.status(201).json(event);
   } catch (error) {
@@ -27,24 +27,28 @@ exports.getTicket = async (req, res) => {
 
     // Confirm event exists
     const event = await Event.findById(eventId);
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (!event) return res.status(404).json({ message: "Event not found" });
 
     // Prevent duplicate ticket for same user/event (optional but recommended)
-    const existing = await Ticket.findOne({ user: req.user.id, event: eventId });
+    const existing = await Ticket.findOne({
+      user: req.user.id,
+      event: eventId,
+    });
     if (existing) {
       return res.status(400).json({
-        message: 'Ticket already issued for this event',
-        ticket: existing
+        message: "Ticket already issued for this event",
+        ticket: existing,
       });
     }
 
     // Generate ticket number
-    const ticketNumber = 'TKT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const ticketNumber =
+      "TKT-" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
     const ticket = await Ticket.create({
       user: req.user.id,
       event: eventId,
-      ticketNumber
+      ticketNumber,
     });
 
     // Email ticket (make sure req.user.email is available from auth token;
@@ -58,12 +62,12 @@ exports.getTicket = async (req, res) => {
         <p>Location: ${event.location}</p>
         <p>Date & Time: ${event.dateTime.toISOString()}</p>
         <p>Your ticket number: <strong>${ticketNumber}</strong></p>
-      `
+      `,
     });
 
-    res.status(201).json({ message: 'Ticket issued', ticket });
+    res.status(201).json({ message: "Ticket issued", ticket });
   } catch (error) {
-    console.error('getTicket error:', error);
+    console.error("getTicket error:", error);
     res.status(500).json({ message: error.message });
   }
 };

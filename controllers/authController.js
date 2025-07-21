@@ -1,16 +1,12 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const setTokenCookie = require('../authService/setTokenCookie');
+const clearTokenCookie = require('../authService/clearCookie');
+const { createToken } = require('../authService/authService');
 
-const generateToken = (id, email, role) =>
-  jwt.sign({ id, email, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-const buildCookieOptions = () => ({
-  httpOnly: true,
-  secure: false,
-  sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
+
 
 const normalizeEmail = (email) => (email || '').trim().toLowerCase();
 
@@ -31,9 +27,6 @@ exports.register = async (req, res) => {
     }
 
     const user = await User.create({ name, email, password });
-
-    const token = generateToken(user._id, user.email, user.role);
-    res.cookie('token', token, buildCookieOptions());
 
     return res.status(201).json({
       _id: user._id,
@@ -66,8 +59,8 @@ exports.login = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: 'Invalid email or password' });
 
-    const token = generateToken(user._id, user.email, user.role);
-    res.cookie('token', token, buildCookieOptions());
+    const token = createToken(user);
+     setTokenCookie(res, token);
 
     return res.json({
       _id: user._id,
@@ -82,11 +75,12 @@ exports.login = async (req, res) => {
 };
 
 // -------- Logout --------
-exports.logout = (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax'
-  });
-  res.json({ message: 'Logged out successfully' });
+exports.handleLogout = (req, res) => {
+  try {
+    clearTokenCookie(res);
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: `Server error: ${error}` });
+  }
 };

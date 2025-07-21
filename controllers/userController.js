@@ -2,7 +2,7 @@ const courseModel = require('../models/courseModel');
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 
-// -------- Get Profile --------
+
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -18,7 +18,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-//    Get all courses purchased by the logged-in user
+
 exports.getMyCourses = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -29,7 +29,7 @@ exports.getMyCourses = async (req, res) => {
   }
 };
 
-// -------- UPDATE profile -------- 
+
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -65,7 +65,6 @@ exports.updateProfile = async (req, res) => {
       user.password = password;
     }
 
-    // ---- Profile Pic Upload (Multer + Cloudinary) ----
     let oldPublicId = null;
     if (req.file) {
       oldPublicId = user.profilePicPublicId || null;
