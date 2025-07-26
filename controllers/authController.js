@@ -95,7 +95,7 @@ const forgotPassword = async (req, res) => {
       expiresIn: "1h",
     });
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetLink = `${process.env.CLIENT_URL}/profile/${resetToken}`;
 
     const emailSent = await sendResetPassword(
       user.name,
