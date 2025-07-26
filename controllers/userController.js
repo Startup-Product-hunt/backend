@@ -5,7 +5,7 @@ const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const { name,bio,location,phone,tags } = req.body;
+    const { name,bio,location,phone,tags } = req.body|| {};
     const profilePic = req.file ? req.file.path : undefined;
 
     const updateData = {};
@@ -52,7 +52,7 @@ const getProfile = async (req, res) => {
 const getMyProduct = async (req, res) => {
   try {
     const userId = req.user.id;
-    const product = await Product.find({ userId }).populate('UserId');
+    const product = await Product.find({ userId }).populate('userId');
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });

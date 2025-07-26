@@ -2,7 +2,7 @@ const Product = require("../models/productModel");
 
 const getAllProduct = async (req, res) => {
   try {
-    const product = await Product.find().populate("UserId");
+    const product = await Product.find().populate("userId");
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -11,7 +11,7 @@ const getAllProduct = async (req, res) => {
 
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("UserId");
+    const product = await Product.findById(req.params.id).populate("userId");
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
   } catch (error) {
@@ -33,7 +33,7 @@ const createProduct = async (req, res) => {
       userId: req.user.id,
     });
 
-    const populated = await Product.findById(product._id).populate("UserId");
+    const populated = await Product.findById(product._id).populate("userId");
     res.status(201).json(populated);
   } catch (error) {
     console.error("Create Product error:", error);
@@ -50,29 +50,32 @@ const updateProduct = async (req, res) => {
 
     const updateData = {};
 
-    if (title) updateData.title = cleanString(title);
+    if (title) updateData.title = title.trim();
     if (details) updateData.details = details;
     if (price) updateData.price = Number(price);
-    if (category) updateData.category = cleanString(category);
-    if (coverImage) updateData.coverImage = cleanString(coverImage);
+    if (category) updateData.category = category.trim();
+    if (coverImage) updateData.coverImage = coverImage.trim();
 
-    const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, {
-      new: true
-    })
-      .populate('userId') 
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      updateData,
+      {
+        new: true,
+      }
+    ).populate("userId");
 
     if (!updatedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     res.status(200).json({
-      message: 'Product updated successfully',
-      product: updatedProduct
+      message: "Product updated successfully",
+      product: updatedProduct,
     });
   } catch (error) {
-    console.error('Update product error:', error);
+    console.error("Update product error:", error);
 
-    res.status(500).json({ message: 'Server error while updating product' });
+    res.status(500).json({ message: "Server error while updating product" });
   }
 };
 
@@ -91,9 +94,9 @@ const deleteProduct = async (req, res) => {
 };
 
 module.exports = {
-getAllProduct,
-getProductById,
-createProduct,
-updateProduct,
-deleteProduct
-}
+  getAllProduct,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};
