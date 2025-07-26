@@ -3,7 +3,7 @@ const {
   createCourse,
   updateCourse,
   deleteCourse,
-} = require("../controllers/courseController");
+} = require("../controllers/productController");
 const router = express.Router();
 const upload = require('../middlewares/cloudinaryUpload')
 

@@ -1,44 +1,22 @@
-const Course = require('../models/courseModel');
+const Product = require('../models/productModel');
 const mongoose = require('mongoose');
 
-function cleanString(val) {
-  return typeof val === 'string' ? val.trim() : val;
-}
-function parseContentPayload(raw) {
-  if (!raw) return [];
-  let data = raw;
-  if (typeof raw === 'string') {
-    try { data = JSON.parse(raw); } catch { return []; }
-  }
-  if (!Array.isArray(data)) return [];
-  return data
-    .map(i => ({ type: i?.type, url: i?.url }))
-    .filter(i => i.type && i.url);
-}
-function userCanEditCourse(course, reqUser) {
-  if (!reqUser) return false;
-  if (reqUser.role === 'admin') return true;
-  return course.createdBy.toString() === reqUser.id.toString();
-}
-
-exports.getCourses = async (req, res) => {
+const getAllProduct = async (req, res) => {
   try {
-    const courses = await Course.find()
-      .populate('createdBy', 'name email')
-      .lean();
-    res.json(courses);
+    const product = await Product.find()
+      .populate('UserId')
+    res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.getCourse = async (req, res) => {
+const getProductById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id)
-      .populate('createdBy', 'name email')
-      .lean();
-    if (!course) return res.status(404).json({ message: 'Course not found' });
-    res.json(course);
+    const product = await Product.findById(req.params.id)
+      .populate('UserId')
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
       return res.status(400).json({ message: 'Invalid course ID' });
@@ -47,39 +25,30 @@ exports.getCourse = async (req, res) => {
   }
 };
 
-exports.createCourse = async (req, res) => {
+const createProduct = async (req, res) => {
   try {
     const {
       title,
       details,
-      description,
       price,
       category,
       content
     } = req.body;
 
-    if (!title) return res.status(400).json({ message: 'Title is required.' });
-    const detailsText = details || description;
-    if (!detailsText) return res.status(400).json({ message: 'Details are required.' });
-    if (price === undefined) return res.status(400).json({ message: 'Price is required.' });
-    if (!category) return res.status(400).json({ message: 'Category is required.' });
 
-    let thumbnailUrl = '';
-    if (req.file?.path) thumbnailUrl = req.file.path;
-    else if (req.body.thumbnail) thumbnailUrl = cleanString(req.body.thumbnail);
 
-    const course = await Course.create({
+    const product = await Product.create({
       title: cleanString(title),
       details: detailsText,
       price: Number(price),
       category: cleanString(category),
       thumbnail: thumbnailUrl,
       content: parseContentPayload(content),
-      createdBy: req.user.id
+      UserId: req.user.id
     });
 
-    const populated = await Course.findById(course._id)
-      .populate('createdBy', 'name email')
+    const populated = await Product.findById(course._id)
+      .populate('UserId', 'name email')
       .lean();
 
     res.status(201).json(populated);
@@ -89,19 +58,14 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-exports.updateCourse = async (req, res) => {
+const updateProduct = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ message: 'Course not found' });
-
-    if (!userCanEditCourse(course, req.user)) {
-      return res.status(403).json({ message: 'Not authorized to update this course' });
-    }
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Course not found' });
 
     const {
       title,
       details,
-      description,
       price,
       category,
       content
@@ -140,7 +104,7 @@ exports.updateCourse = async (req, res) => {
   }
 };
 
-exports.deleteCourse = async (req, res) => {
+const deleteCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
     if (!course) return res.status(404).json({ message: 'Course not found' });

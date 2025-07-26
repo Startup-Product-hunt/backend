@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-    user: {
+    UserId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    event: {
+    EventId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Event',
         required: true
@@ -14,7 +14,6 @@ const ticketSchema = new mongoose.Schema({
     ticketNumber: {
         type: String,
         required: true,
-        unique: true
     },
     issuedAt: {
         type: Date,

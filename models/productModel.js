@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const courseSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
     {
         title: {
             type: String,
@@ -19,34 +19,18 @@ const courseSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        thumbnail: {
+        coverImage: {
             type: String,
             default: ''
         },
-        createdBy: {
+        userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true
-        },
-        enrolledCount: {
-            type: Number,
-            default: 0
-        },
-        content: [
-            {
-                type: {
-                    type: String,
-                    enum: ['video', 'pdf', 'quiz'],
-                    required: true
-                },
-                url: {
-                    type: String,
-                    required: true
-                }
-            }
-        ]
+        }
+       
     },
     { timestamps: true }
 );
-
-module.exports = mongoose.model('Course', courseSchema);
+const Product = mongoose.model("product", productSchema);
+module.exports = Product;

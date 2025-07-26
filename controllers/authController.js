@@ -4,16 +4,12 @@ const bcrypt = require('bcrypt');
 const setTokenCookie = require('../authService/setTokenCookie');
 const clearTokenCookie = require('../authService/clearCookie');
 const { createToken } = require('../authService/authService');
+const { sendResetPassword } = require('../emailService/passwordResetOTP');
 
 
-
-
-const normalizeEmail = (email) => (email || '').trim().toLowerCase();
-
-// -------- Register --------
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   try {
-    let { name, email, password } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password)
       return res.status(400).json({ message: 'Name, email, password required' });
@@ -43,10 +39,9 @@ exports.register = async (req, res) => {
   }
 };
 
-// -------- Login --------
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
-    let { email, password } = req.body;
+    const { email, password } = req.body;
     if (!email || !password)
       return res.status(400).json({ message: 'Email and password required' });
 
@@ -74,8 +69,8 @@ exports.login = async (req, res) => {
   }
 };
 
-// -------- Logout --------
-exports.logout = (req, res) => {
+
+const logout = (req, res) => {
   try {
     clearTokenCookie(res);
     res.status(200).json({ message: "Logged out successfully" });
@@ -84,3 +79,80 @@ exports.logout = (req, res) => {
     return res.status(500).json({ msg: `Server error: ${error}` });
   }
 };
+
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+    const emailSent = await sendResetPassword(
+      user.name,
+      user.email,
+      resetLink
+    );
+
+    if (!emailSent) {
+      return res.status(500).json({ msg: "Failed to send reset email" });
+    }
+
+    return res.status(200).json({
+      resetLink,
+      msg: "Reset link sent to your email successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      msg: `Server error from forgot password: ${error.message}`,
+    });
+  }
+};
+
+const handleResetPassword = async (req, res) => {
+  const { resetToken } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    if (!resetToken) {
+      return res.status(400).json({ message: "Reset token is required" });
+    }
+
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+  
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    await user.save();
+
+    return res.status(200).json({ msg: "Password reset successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ msg: `Server error from handleResetPassword: ${error}` });
+  }
+};
+
+
+module.exports = {
+  register,
+  handleResetPassword,
+  forgotPassword,
+  login,
+  logout
+}
+
