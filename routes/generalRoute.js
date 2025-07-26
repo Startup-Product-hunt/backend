@@ -1,9 +1,10 @@
 const express = require("express");
-const { getCourses, getCourse } = require("../controllers/productController");
+const { getAllProduct, getProductById } = require("../controllers/productController");
+const { getAllEvents } = require("../controllers/eventController");
 const router = express.Router();
 
-router.get("/", getCourses);
-router.get("/:id", getCourse);
-
+router.get("/products",getAllProduct);
+router.get("/products/:id", getProductById);
+router.get("/events",getAllEvents)
 
 module.exports = router;

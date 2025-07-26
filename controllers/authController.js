@@ -13,9 +13,7 @@ const register = async (req, res) => {
 
     if (!name || !email || !password)
       return res.status(400).json({ message: 'Name, email, password required' });
-    email = normalizeEmail(email);
-    if (password.length < 6)
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -31,9 +29,6 @@ const register = async (req, res) => {
       role: user.role
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email already registered' });
-    }
     console.error('Register error:', error);
     res.status(500).json({ message: 'Server error' });
   }
@@ -45,7 +40,6 @@ const login = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: 'Email and password required' });
 
-    email = normalizeEmail(email);
     const user = await User.findOne({ email });
     if (!user)
       return res.status(400).json({ message: 'Invalid email or password' });

@@ -1,9 +1,8 @@
-const Event = require("../models/eventModel");
-const Ticket = require("../models/ticketModel");
-const sendEmail = require("../utils/sendEmail");
-const crypto = require("crypto");
+const Event  = require('../models/eventModel')
+const Ticket = require('../models/ticketModel')
+const crypto = require('crypto');
 
-exports.createEvent = async (req, res) => {
+const createEvent = async (req, res) => {
   try {
     const { title, description, location, dateTime } = req.body;
     const event = await Event.create({
@@ -11,7 +10,7 @@ exports.createEvent = async (req, res) => {
       description,
       location,
       dateTime,
-      createdBy: req.user.id,
+      userId: req.user.id,
     });
     res.status(201).json(event);
   } catch (error) {
@@ -19,48 +18,58 @@ exports.createEvent = async (req, res) => {
   }
 };
 
-exports.getTicket = async (req, res) => {
-  try {
-    const { eventId } = req.params;
 
-    const event = await Event.findById(eventId);
+const getAllEvents = async (req, res) => {
+  try {
+
+    const event = await Event.find();
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    const existing = await Ticket.findOne({
-      user: req.user.id,
-      event: eventId,
-    });
-    if (existing) {
-      return res.status(400).json({
-        message: "Ticket already issued for this event",
-        ticket: existing,
-      });
-    }
-
-    const ticketNumber =
-      "TKT-" + crypto.randomBytes(4).toString("hex").toUpperCase();
-
-    const ticket = await Ticket.create({
-      user: req.user.id,
-      event: eventId,
-      ticketNumber,
-    });
-
-    await sendEmail({
-      to: req.user.email,
-      subject: `Your ticket for: ${event.title}`,
-      text: `Your ticket number: ${ticketNumber}`,
-      html: `
-        <h2>${event.title}</h2>
-        <p>Location: ${event.location}</p>
-        <p>Date & Time: ${event.dateTime.toISOString()}</p>
-        <p>Your ticket number: <strong>${ticketNumber}</strong></p>
-      `,
-    });
-
-    res.status(201).json({ message: "Ticket issued", ticket });
+   res.status(200).json(event);
   } catch (error) {
     console.error("getTicket error:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+const getTicket = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const existing = await Ticket.findOne({ userId: req.user.id, eventId });
+
+    if (existing) {
+      return res.status(200).json({ message: 'Ticket already issued', ticket: existing });
+    }
+
+    const ticket = await Ticket.create({
+      userId: req.user.id,
+      eventId,
+      ticketNumber: `TICKET-${crypto.randomBytes(4).toString('hex').toUpperCase()}`
+    });
+
+    res.status(201).json({ message: 'Ticket issued', ticket });
+  } catch (error) {
+    console.error('getTicket error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getUserTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ userId: req.user.id })
+      .populate('eventId');
+
+    res.status(200).json(tickets);
+  } catch (error) {
+    console.error('getUserTickets error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createEvent,
+  getAllEvents,
+  getTicket,
+  getUserTickets
+};
+

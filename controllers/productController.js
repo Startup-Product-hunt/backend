@@ -1,10 +1,8 @@
-const Product = require('../models/productModel');
-const mongoose = require('mongoose');
+const Product = require("../models/productModel");
 
 const getAllProduct = async (req, res) => {
   try {
-    const product = await Product.find()
-      .populate('UserId')
+    const product = await Product.find().populate("UserId");
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -13,113 +11,89 @@ const getAllProduct = async (req, res) => {
 
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
-      .populate('UserId')
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    const product = await Product.findById(req.params.id).populate("UserId");
+    if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).json({ message: 'Invalid course ID' });
-    }
     res.status(500).json({ message: error.message });
   }
 };
 
 const createProduct = async (req, res) => {
   try {
-    const {
+    const { title, details, price, category } = req.body;
+    const coverImage = req.file ? req.file.path : undefined;
+
+    const product = await Product.create({
       title,
       details,
       price,
       category,
-      content
-    } = req.body;
-
-
-
-    const product = await Product.create({
-      title: cleanString(title),
-      details: detailsText,
-      price: Number(price),
-      category: cleanString(category),
-      thumbnail: thumbnailUrl,
-      content: parseContentPayload(content),
-      UserId: req.user.id
+      coverImage,
+      userId: req.user.id,
     });
 
-    const populated = await Product.findById(course._id)
-      .populate('UserId', 'name email')
-      .lean();
-
+    const populated = await Product.findById(product._id).populate("UserId");
     res.status(201).json(populated);
   } catch (error) {
-    console.error('Create course error:', error);
+    console.error("Create Product error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Course not found' });
+    const productId = req.params.id;
 
-    const {
-      title,
-      details,
-      price,
-      category,
-      content
-    } = req.body;
+    const { title, details, price, category } = req.body;
+    const coverImage = req.file ? req.file.path : req.body.coverImage;
 
-    if (title !== undefined) course.title = cleanString(title);
-    if (details !== undefined || description !== undefined) {
-      course.details = details || description;
-    }
-    if (price !== undefined) course.price = Number(price);
-    if (category !== undefined) course.category = cleanString(category);
+    const updateData = {};
 
-    if (req.file?.path) {
-      course.thumbnail = req.file.path;
-    } else if (req.body.thumbnail !== undefined) {
-      course.thumbnail = cleanString(req.body.thumbnail);
+    if (title) updateData.title = cleanString(title);
+    if (details) updateData.details = details;
+    if (price) updateData.price = Number(price);
+    if (category) updateData.category = cleanString(category);
+    if (coverImage) updateData.coverImage = cleanString(coverImage);
+
+    const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, {
+      new: true
+    })
+      .populate('userId') 
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
     }
 
-    if (content !== undefined) {
-      course.content = parseContentPayload(content);
-    }
-
-    await course.save();
-
-    const populated = await Course.findById(course._id)
-      .populate('createdBy', 'name email')
-      .lean();
-
-    res.json(populated);
+    res.status(200).json({
+      message: 'Product updated successfully',
+      product: updatedProduct
+    });
   } catch (error) {
-    console.error('Update course error:', error);
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).json({ message: 'Invalid course ID' });
-    }
-    res.status(500).json({ message: error.message });
+    console.error('Update product error:', error);
+
+    res.status(500).json({ message: 'Server error while updating product' });
   }
 };
 
-const deleteCourse = async (req, res) => {
+const deleteProduct = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ message: 'Course not found' });
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    if (!userCanEditCourse(course, req.user)) {
-      return res.status(403).json({ message: 'Not authorized to delete this course' });
-    }
-
-    await course.deleteOne();
-    res.json({ message: 'Course removed' });
+    await product.deleteOne();
+    res.json({ message: "Product removed" });
   } catch (error) {
-    console.error('Delete course error:', error);
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).json({ message: 'Invalid course ID' });
-    }
+    console.error("Delete Product error:", error);
+
     res.status(500).json({ message: error.message });
   }
 };
+
+module.exports = {
+getAllProduct,
+getProductById,
+createProduct,
+updateProduct,
+deleteProduct
+}
