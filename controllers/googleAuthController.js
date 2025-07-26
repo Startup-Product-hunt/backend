@@ -74,7 +74,7 @@ const googleCallback = async (req, res) => {
           googleId,
           name: name,
           email,
-          profilePhoto: picture,
+          profilePic: picture,
           password: null,
           role: "user",
         });

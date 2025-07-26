@@ -32,7 +32,7 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-const getTicket = async (req, res) => {
+const createTicket = async (req, res) => {
   try {
     const { eventId } = req.body;
     const existing = await Ticket.findOne({ userId: req.user.id, eventId });
@@ -69,7 +69,7 @@ const getUserTickets = async (req, res) => {
 module.exports = {
   createEvent,
   getAllEvents,
-  getTicket,
+  createTicket,
   getUserTickets
 };
 
