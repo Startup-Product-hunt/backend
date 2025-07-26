@@ -43,12 +43,13 @@ const generalRoutes = require('./routes/generalRoute');
 const productRoutes = require('./routes/productRoute');
 const eventRoutes = require("./routes/eventRoutes")
 const checkForAuthenticationCookie = require('./middlewares/authMiddleware')
-const {authorizeRoles} = require('./middlewares/roleMiddleware')
+const {authorizeRoles} = require('./middlewares/roleMiddleware');
+const userDetailsRoute = require('./routes/userDetailsRoute')
 
 app.use("/api/auth", authRoutes, googleAuthRoute);
 app.use("/api/user",checkForAuthenticationCookie('token'), userRoutes,productRoutes);
 app.use("/api/general",generalRoutes);
-app.use("/api/admin",checkForAuthenticationCookie('token'),authorizeRoles(['admin']),eventRoutes)
+app.use("/api/admin",checkForAuthenticationCookie('token'),authorizeRoles(['admin']),eventRoutes,userDetailsRoute)
 
 app.get("/", (req, res) => res.send("API is running..."));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

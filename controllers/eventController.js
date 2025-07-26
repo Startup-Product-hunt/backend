@@ -66,10 +66,26 @@ const getUserTickets = async (req, res) => {
   }
 };
 
+
+const getAllUsersWithTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find()
+      .populate("userId")
+      .populate("eventId");    
+
+    res.status(200).json(tickets);
+  } catch (error) {
+    console.error("Get all users with tickets error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createEvent,
   getAllEvents,
   createTicket,
-  getUserTickets
+  getUserTickets,
+  getAllUsersWithTickets
 };
 
