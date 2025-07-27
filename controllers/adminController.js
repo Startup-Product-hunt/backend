@@ -1,4 +1,5 @@
 const { sendEventInviteEmail } = require("../emailService/passwordResetOTP");
+const Event = require("../models/eventModel");
 const Ticket = require("../models/ticketModel");
 const User = require("../models/userModel");
 
