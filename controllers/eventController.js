@@ -2,26 +2,25 @@ const Event  = require('../models/eventModel')
 const Ticket = require('../models/ticketModel')
 const crypto = require('crypto');
 
-const createEvent = async (req, res) => {
-  try {
-    const { title, description, location, dateTime } = req.body;
-    const event = await Event.create({
-      title,
-      description,
-      location,
-      dateTime,
-      userId: req.user.id,
-    });
-    res.status(201).json(event);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+  const createEvent = async (req, res) => {
+    try {
+      const { title, description, location, dateTime } = req.body;
+      const event = await Event.create({
+        title,
+        description,
+        location,
+        dateTime,
+        userId: req.user.id,
+      });
+      res.status(201).json(event);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
 
 
 const getAllEvents = async (req, res) => {
   try {
-
     const event = await Event.find();
     if (!event) return res.status(404).json({ message: "Event not found" });
 
