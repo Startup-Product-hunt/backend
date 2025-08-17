@@ -87,7 +87,7 @@ const googleCallback = async (req, res) => {
       { expiresIn: "1h" }
     );
     setTokenCookie(res, token);
-    const encodedName = encodeURIComponent(user.fullName);
+    const encodedName = encodeURIComponent(user.name);
     const encodedEmail = encodeURIComponent(user.email);
     const encodedRole = encodeURIComponent(user.role);
 
