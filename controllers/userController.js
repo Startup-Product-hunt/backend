@@ -35,7 +35,15 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-
+const getProfileById = async(req,res)=>{
+  try {
+    const user = await User.findById(req.params.id).select("-password"); 
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+}
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -55,12 +63,13 @@ const getMyProduct = async (req, res) => {
     const product = await Product.find({ userId }).populate('userId');
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message  });
   }
 };
 
 module.exports = {
   getProfile,
   updateUserProfile,
-  getMyProduct
+  getMyProduct,
+  getProfileById
 }
